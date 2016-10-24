@@ -247,8 +247,8 @@ namespace ScriptGenerator
             {
                 var sqlTableSelect = $"select {string.Join(",", table.ColumnNames)} from [{table.SchemaName}].[{table.TableName}]";
 
-                var sqlReaderQuery = onlyUpdatesSinceXDaysAgo.HasValue ?
-                      $"$$Text.Format('{sqlTableSelect} WHERE LastUpdateTime >= \\\\'{{0:yyyy-MM-dd HH:mm}}\\\\'', Date.AddDays(WindowStart,-{onlyUpdatesSinceXDaysAgo.Value.Days}))"
+                var sqlReaderQuery = onlyUpdatesSinceXDaysAgo.HasValue && table.LastUpdateTimeColumnName != null ?
+                      $"$$Text.Format('{sqlTableSelect} WHERE {table.LastUpdateTimeColumnName} >= \\\\'{{0:yyyy-MM-dd HH:mm}}\\\\'', Date.AddDays(WindowStart,-{onlyUpdatesSinceXDaysAgo.Value.Days}))"
                       : sqlTableSelect;
 
                 str += $@"""source"": {{

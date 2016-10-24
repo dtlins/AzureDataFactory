@@ -26,6 +26,7 @@ namespace ScriptGenerator
                 var dependancies = row[2];
                 var tablename = row[3];
                 var tableColumns = row[4];
+                var lastUpdateTimeColumnName = row[5];
 
                 var s1 = tablename.Substring(tablename.IndexOf('[') + 1);
                 var schema = s1.Substring(0, s1.IndexOf(']'));
@@ -40,7 +41,8 @@ namespace ScriptGenerator
                     Dependancies = dependancies?.Split(','),
                     SchemaName = schema,
                     TableName = table,
-                    ColumnNames = tableColumns.Split(',')
+                    ColumnNames = tableColumns.Split(','),
+                    LastUpdateTimeColumnName = string.IsNullOrEmpty(lastUpdateTimeColumnName) ? null : lastUpdateTimeColumnName
                 });
             }
         }
@@ -53,7 +55,7 @@ namespace ScriptGenerator
         public Table(string schemaAndTablename)
         {
             var s1 = schemaAndTablename.Substring(schemaAndTablename.IndexOf('[') + 1);
-            this.SchemaName= s1.Substring(0, s1.IndexOf(']'));
+            this.SchemaName = s1.Substring(0, s1.IndexOf(']'));
 
             var s2 = s1.Substring(s1.IndexOf('[') + 1);
             this.TableName = s2.Substring(0, s2.IndexOf(']'));
@@ -64,5 +66,6 @@ namespace ScriptGenerator
         public IList<string> ColumnNames { get; set; }
         public string SchemaName { get; set; }
         public IList<string> Dependancies { get; set; }
+        public string LastUpdateTimeColumnName { get; set; }
     }
 }

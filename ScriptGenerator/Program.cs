@@ -24,7 +24,7 @@ namespace ScriptGenerator
             //    results += Templates.AzureSqlDWTableStaging(table) + Environment.NewLine;
             //}
 
-            results += Templates.GenerateCopyPipeline(DateTime.UtcNow, DateTime.UtcNow, csv, LinkedService.LinkedServices["All"]);
+            results += Templates.GenerateCopyPipeline(DateTime.UtcNow, DateTime.UtcNow, csv, LinkedService.LinkedServices["All"], TimeSpan.FromDays(1));
 
             //results += Templates.GenerateUpsertStoredProcedures(csv);
             //results += Templates.GenerateGetStoredProcedures(csv);
@@ -32,4 +32,4 @@ namespace ScriptGenerator
             File.WriteAllText(Environment.CurrentDirectory + "\\results.txt", results);
         }
     }
-    }
+}
