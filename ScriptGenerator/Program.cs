@@ -1,6 +1,7 @@
 ﻿using ScriptGenerator.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace ScriptGenerator
     {
         static void Main(string[] args)
         {
-            var filepath = Environment.CurrentDirectory + "\\tables.csv";
+            var filepath = ConfigurationManager.AppSettings.GetValues("tablesCSVLocation").FirstOrDefault() ?? Environment.CurrentDirectory + "\\tables.csv";
             string results = string.Empty;
 
             var csv = new CSVfile(filepath);
@@ -21,10 +22,11 @@ namespace ScriptGenerator
             //{
             //    //results += Templates.GenerateSourceTable(table) + Environment.NewLine;
             //    results += Templates.GenerateDestinationTable(table) + Environment.NewLine;
-            //    results += Templates.AzureSqlDWTableStaging(table) + Environment.NewLine;
+            //    //results += Templates.AzureSqlDWTableStaging(table) + Environment.NewLine;
             //}
 
-            results += Templates.GenerateCopyPipeline(DateTime.UtcNow, DateTime.UtcNow, csv, LinkedService.LinkedServices["All"], TimeSpan.FromDays(1));
+            var onlyUpdatesInLastXDays = TimeSpan.FromDays(1);
+            results += Templates.GenerateCopyPipeline(DateTime.UtcNow, DateTime.UtcNow, csv, LinkedService.LinkedServices["All"], onlyUpdatesInLastXDays);
 
             //results += Templates.GenerateUpsertStoredProcedures(csv);
             //results += Templates.GenerateGetStoredProcedures(csv);

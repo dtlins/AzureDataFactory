@@ -49,9 +49,6 @@ namespace ScriptGenerator
             {
                 if (t.SourceLinkedService.Type == LinkedServiceType.AzureSqlDWTable)
                 {
-                    var fullTableName = $"[{t.SchemaName}].[{t.TableName}]";
-                    var stagingTableName = $"[{t.SchemaName}].[{t.TableName}_staging]";
-
                     sb.Append($@" CREATE PROC [dbo].[get_{t.SchemaName}_{t.TableName}] AS
                               BEGIN
                                     SET NOCOUNT ON
@@ -68,25 +65,25 @@ namespace ScriptGenerator
         {
             var sb = new StringBuilder();
 
-            foreach (var t in csv.Tables)
+            foreach (var table in csv.Tables)
             {
-                var primaryKey = t.ColumnNames.First();
-                var fullTableName = $"[{t.SchemaName}].[{t.TableName}]";
-                var stagingTableName = $"[{t.SchemaName}].[{t.TableName}_staging]";
+                var primaryKey = table.ColumnNames.First();
+                var fullTableName = $"[{table.SchemaName}].[{table.TableName}]";
+                var stagingTableName = TableNameStaging(table);
 
-                sb.Append($@" CREATE PROC [dbo].[merge_{t.SchemaName}_{t.TableName}] AS
+                sb.Append($@" CREATE PROC [dbo].[merge_{table.SchemaName}_{table.TableName}] AS
                               BEGIN
                                     SET NOCOUNT ON
                               UPDATE {fullTableName}
                               SET
-                                {string.Join(",", t.ColumnNames.Select(n => $"{fullTableName}.{n} = source.{n}"))}
+                                {string.Join(",", table.ColumnNames.Select(n => $"{fullTableName}.{n} = source.{n}"))}
                               FROM
                               {stagingTableName} source WHERE source.{primaryKey} = {fullTableName}.{primaryKey}
 
                               INSERT INTO {fullTableName}
-                              ({string.Join(",", t.ColumnNames)})
+                              ({string.Join(",", table.ColumnNames)})
                               SELECT
-                              {string.Join(",", t.ColumnNames.Select(n => $"source.{n}"))}
+                              {string.Join(",", table.ColumnNames.Select(n => $"source.{n}"))}
                               FROM {stagingTableName} source
                               WHERE NOT EXISTS (SELECT * FROM {fullTableName} target WHERE source.{primaryKey} = target.{primaryKey})
                               
@@ -151,7 +148,7 @@ namespace ScriptGenerator
                             ""type"": ""AzureSqlDWTable"",
                             ""linkedServiceName"": ""{table.DestinationLinkedService.Name}"",
                             ""typeProperties"": {{
-                                ""tableName"": ""[{table.SchemaName}].[{table.TableName}_staging]""
+                                ""tableName"": ""{ TableNameStaging(table) }""
                             }},
                             ""availability"": {{
                                 ""frequency"": ""Minute"",
@@ -161,6 +158,8 @@ namespace ScriptGenerator
                     }}
                     ";
         }
+        
+        private static string TableNameStaging(Table table) => $"[Staging].[{table.SchemaName + table.TableName}]";
 
 
         private static IList<string> GenerateCopyActivities(IList<Table> tables, TimeSpan? onlyUpdatesSinceXDaysAgo = null)
